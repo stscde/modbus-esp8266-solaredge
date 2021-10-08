@@ -1,0 +1,41 @@
+{
+    "name": "solaredge_modbus_arduino",
+    "version": "0.0.1",
+    "description": "Wrapper library for reading values from SolarEdge inverters connected meter no. 1 and battery no 1 without going to deep into Modbus insights.",
+    "keywords": "SolarEdge, Modbus, Arduino, ESP8266",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/stscde/modbus-esp8266-solaredge.git"
+    },
+    "authors": [
+        {
+            "name": "Stefan Schroeder",
+            "email": "schroeder-s@email.de",
+            "maintainer": true
+        }
+    ],
+    "dependencies": [
+        {
+            "name": "emelianov/modbus-esp8266",
+            "version": "https://github.com/emelianov/modbus-esp8266.git"
+        }
+    ],
+    "frameworks": "*",
+    "platforms": "*",
+    "examples": [
+        {
+            "name": "ReadAllValuesExample",
+            "base": "examples/ReadAllValues",
+            "files": [
+                "ReadAllValuesExample.cpp"
+            ]
+        }
+    ],
+    "build": {
+        "libArchive": false,
+		"flags": [
+			"-I include/",
+			"-I src/"
+		]
+    }    
+}

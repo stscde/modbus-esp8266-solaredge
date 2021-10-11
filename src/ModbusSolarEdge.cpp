@@ -45,6 +45,13 @@ void waitForTransaction(ModbusIP &mb, uint16_t transaction) {
     }
 }
 
+/** Values to translate inverter status to text */
+const char *ModbusSolarEdge::I_STATUS_VALUES[] = {"I_STATUS_OFF", "I_STATUS_SLEEPING", "I_STATUS_STARTING", "I_STATUS_MPPT", "I_STATUS_THROTTLED", "I_STATUS_SHUTTING_DOWN",
+                                                  "I_STATUS_FAULT", "I_STATUS_STANDBY"};
+
+/** Values to translater battery status to text */
+const char *ModbusSolarEdge::B_STATUS_VALUES[] = {"Off", "Standby", "Init", "Charge", "Discharge", "Fault", "Idle"};
+
 /**
  * Read hreg string value into a char array
  * @param mb ModbusIP object reference

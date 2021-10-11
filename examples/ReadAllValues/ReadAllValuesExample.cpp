@@ -87,7 +87,7 @@ void loop() {
         mb.connect(remote, 1502);
     }
 
-    // common values
+    // inverter common values
     printUint32(mb, remote, "C_SUNSPEC_ID", C_SUNSPEC_ID);
     printUint16(mb, remote, "C_SUNSPEC_DID", C_SUNSPEC_DID);
     printUint16(mb, remote, "C_SUNSPEC_LENGTH", C_SUNSPEC_LENGTH);
@@ -126,5 +126,21 @@ void loop() {
     printAcc32(mb,remote, "I_AC_ENERGY_WH", I_AC_ENERGY_WH);
     printInt16(mb, remote, "I_AC_ENERGY_WH_SF", I_AC_ENERGY_WH_SF);
 
+    printUint16(mb, remote, "I_DC_CURRENT", I_DC_CURRENT);
+    printInt16(mb, remote, "I_DC_CURRENT_SF", I_DC_CURRENT_SF);
+    printUint16(mb, remote, "I_DC_VOLTAGE", I_DC_VOLTAGE);
+    printInt16(mb, remote, "I_DC_VOLTAGE_SF", I_DC_VOLTAGE_SF);
+    printInt16(mb, remote, "I_DC_POWER", I_DC_POWER);
+    printInt16(mb, remote, "I_DC_POWER_SF", I_DC_POWER_SF);
+    printInt16(mb, remote, "I_TEMP_SINK", I_TEMP_SINK);
+    printInt16(mb, remote, "I_TEMP_SF", I_TEMP_SF);
+
+    int16_t i_status = mbse.readHregInt(mb, remote, I_STATUS);
+    printChar("I_STATUS", i_status);
+    printChar("I_STATUS as text", mbse.I_STATUS_VALUES[i_status]);
+
+    printUint16(mb, remote, "I_STATUS_VENDOR", I_STATUS_VENDOR);
+
     delay(30000);
 }
+

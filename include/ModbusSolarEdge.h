@@ -263,6 +263,27 @@ class ModbusSolarEdge {
      */
     float readHregFloat32(ModbusIP &mb, IPAddress &remote, const int regStart);
 
+    /**
+     * Calculate available sun power
+     * @param i_ac_power_norm Inverter output normalized in W
+     * @param b1_b_instantaneous_power Power from the battery in W
+     */
+    int calculate_sun_power(int16_t i_ac_power_norm, float b1_b_instantaneous_power);
+
+    /**
+     * Calculate power used by house
+     * @param i_ac_power_norm Inverter output normalized in W
+     * @param m1_m_ac_power Power going through the meter in W
+     */
+    int calculate_house_usage(int16_t i_ac_power_norm, int16_t m1_m_ac_power);
+
+    /**
+     * Normalize value with scale factor
+     * @param value value
+     * @param scale factor
+     */
+    int16_t norm(int16_t value, int16_t scale_factor);
+
     /** Values to translater battery status to text */
     static const char *B_STATUS_VALUES[];
 

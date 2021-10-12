@@ -42,6 +42,11 @@ void printAcc32(ModbusIP &mb, IPAddress &remote, const char *name, uint16_t reg)
     printChar(name, value);
 }
 
+void printFloat32(ModbusIP &mb, IPAddress &remote, const char *name, uint16_t reg) {
+    float value = mbse.readHregFloat32(mb, remote, reg);
+    printChar(name, value);
+}
+
 void printUint32(ModbusIP &mb, IPAddress &remote, const char *name, uint16_t reg) {
     uint32_t value = mbse.readHregUInt32(mb, remote, reg);
     printChar(name, value);
@@ -84,10 +89,10 @@ void setup() {
 
 void loop() {
     if (!mb.isConnected(remote)) {
-        mb.connect(remote, 1502);
+        mb.connect(remote, port);
     }
 
-    // inverter common values
+    Serial.println("inverter common values");
     printUint32(mb, remote, "C_SUNSPEC_ID", C_SUNSPEC_ID);
     printUint16(mb, remote, "C_SUNSPEC_DID", C_SUNSPEC_DID);
     printUint16(mb, remote, "C_SUNSPEC_LENGTH", C_SUNSPEC_LENGTH);
@@ -98,7 +103,7 @@ void loop() {
     printUint16(mb, remote, "C_DEVICEADDRESS", C_DEVICEADDRESS);
     Serial.println("");
 
-    // inverter values
+    Serial.println("inverter values");
     printUint16(mb, remote, "I_SUNSPEC_DID", I_SUNSPEC_DID);
     printUint16(mb, remote, "I_SUNSPEC_LENGTH", I_SUNSPEC_LENGTH);
     printUint16(mb, remote, "I_AC_CURRENT", I_AC_CURRENT);
@@ -123,7 +128,7 @@ void loop() {
     printInt16(mb, remote, "I_AC_VAR_SF", I_AC_VAR_SF);
     printInt16(mb, remote, "I_AC_PF", I_AC_PF);
     printInt16(mb, remote, "I_AC_PF_SF", I_AC_PF_SF);
-    printAcc32(mb,remote, "I_AC_ENERGY_WH", I_AC_ENERGY_WH);
+    printAcc32(mb, remote, "I_AC_ENERGY_WH", I_AC_ENERGY_WH);
     printInt16(mb, remote, "I_AC_ENERGY_WH_SF", I_AC_ENERGY_WH_SF);
 
     printUint16(mb, remote, "I_DC_CURRENT", I_DC_CURRENT);
@@ -140,7 +145,90 @@ void loop() {
     printChar("I_STATUS as text", mbse.I_STATUS_VALUES[i_status]);
 
     printUint16(mb, remote, "I_STATUS_VENDOR", I_STATUS_VENDOR);
+    Serial.println("");
+
+    Serial.println("meter 1 common values");
+    printString(mb, remote, "M1_C_MANUFACTURER", M1_C_MANUFACTURER, M1_C_MANUFACTURER_SIZE);
+    printString(mb, remote, "M1_C_MODEL", M1_C_MODEL, M1_C_MODEL_SIZE);
+    printString(mb, remote, "M1_C_OPTION", M1_C_OPTION, M1_C_OPTION_SIZE);
+    printString(mb, remote, "M1_C_VERSION", M1_C_VERSION, M1_C_VERSION_SIZE);
+    printString(mb, remote, "M1_C_SERIALNUMBER", M1_C_SERIALNUMBER, M1_C_SERIALNUMBER_SIZE);
+    Serial.println("");
+
+    Serial.println("meter 1 values");
+    printInt16(mb, remote, "M1_AC_POWER", M1_AC_POWER);
+    printInt16(mb, remote, "M1_AC_POWER_SF", M1_AC_POWER_SF);
+    printAcc32(mb, remote, "M1_EXPORTED", M1_EXPORTED);  // reading as acc32 does not match the specifications from the PDF but works for me
+    printAcc32(mb, remote, "M1_IMPORTED", M1_IMPORTED);  // reading as acc32 does not match the specifications from the PDF but works for me
+    Serial.println("");
+
+    Serial.println("battery 1 common values");
+    printString(mb, remote, "B1_MANUFACTURER_NAME", B1_MANUFACTURER_NAME, B1_MANUFACTURER_NAME_SIZE);
+    printString(mb, remote, "B1_MODEL", B1_MODEL, M1_C_MODEL_SIZE);
+    printString(mb, remote, "M1_C_OPTION", M1_C_OPTION, B1_MODEL_SIZE);
+    printString(mb, remote, "B1_FIRMWARE_VERSION", B1_FIRMWARE_VERSION, B1_FIRMWARE_VERSION_SIZE);
+    printString(mb, remote, "B1_SERIAL_NUMBER", B1_SERIAL_NUMBER, B1_SERIAL_NUMBER_SIZE);
+    Serial.println("");
+
+    Serial.println("battery 1 values");
+    printFloat32(mb, remote, "B1_INSTANTANEOUS_POWER", B1_INSTANTANEOUS_POWER);
+    printFloat32(mb, remote, "B1_STATE_OF_HEALTH_SOH", B1_STATE_OF_HEALTH_SOH);
+    printFloat32(mb, remote, "B1_STATE_OF_ENERGY_SOE", B1_STATE_OF_ENERGY_SOE);
+
+    uint32_t b1_status = mbse.readHregUInt32(mb, remote, B1_STATUS);
+    printChar("B1_STATUS", b1_status);
+    printChar("B1_STATUS as text", mbse.B_STATUS_VALUES[b1_status]);
+    Serial.println("");
+
+    // Try calculate values like the SolarEdge app
+
+    // ##################################################################
+    //
+    //                    SUN
+    //                     | (A)
+    //                     v
+    //   HOUSE <-(B)-  INVERTER  <-(C)-> GRID
+    //                     ^
+    //                     | (D)
+    //                     v
+    //                  BATTERY
+    //
+    // (A) see calculate_sun_power
+    // (B) see calculate_house_usage
+    // (C) use m1_m_ac_power_norm
+    // (D) use b1_b_instantaneous_power
+    //
+    // ##################################################################
+
+    int16_t i_ac_power = mbse.readHregInt(mb, remote, I_AC_POWER);
+    int16_t i_ac_power_sf = mbse.readHregInt(mb, remote, I_AC_POWER_SF);
+    int16_t i_ac_power_norm = mbse.norm(i_ac_power, i_ac_power_sf);
+
+    int16_t m1_m_ac_power = mbse.readHregInt(mb, remote, M1_AC_POWER);
+    int16_t m1_m_ac_power_sf = mbse.readHregInt(mb, remote, M1_AC_POWER_SF);
+    int16_t m1_m_ac_power_norm = mbse.norm(m1_m_ac_power, m1_m_ac_power_sf);
+
+    float b1_b_instantaneous_power = mbse.readHregFloat32(mb, remote, B1_INSTANTANEOUS_POWER);
+
+    // (A) calculate sun power
+    int a_sun_power = mbse.calculate_sun_power(i_ac_power_norm, b1_b_instantaneous_power);
+
+    // (B) calculate power used by house
+    int b_house_usage = mbse.calculate_house_usage(i_ac_power_norm, m1_m_ac_power_norm);
+
+    // (C) grid input/consumption
+    int c_meter_power = m1_m_ac_power_norm;
+
+    // (D) battery charge/discharge
+    int d_battery_power = b1_b_instantaneous_power;
+
+    // battery level in percent
+    float b1_b_state_of_energy = mbse.readHregFloat32(mb, remote, B1_STATE_OF_ENERGY_SOE);
+
+    Serial.println("system overview");
+    char log[320];
+    sprintf(log, "                    SUN\n                     | (A) %dW\n                     v\n   HOUSE <-(B) %dW - INVERTER  <-(C) %dW -> GRID\n                     ^\n                     | (D) %dW/%fPCT\n                     v\n                  BATTERY (%s)\n", a_sun_power, b_house_usage, c_meter_power, d_battery_power, b1_b_state_of_energy, mbse.B_STATUS_VALUES[b1_status]);
+    Serial.println(log);
 
     delay(30000);
 }
-

@@ -1,11 +1,11 @@
 #include "ModbusSolarEdge.h"
 
 /**
- * Calculate available sun power (A)
+ * Calculate available sun power
  * @param i_ac_power_norm Inverter output normalized in W
  * @param b1_b_instantaneous_power Power from the battery in W
  */
-int calculate_sun_power(int16_t i_ac_power_norm, float b1_b_instantaneous_power) {
+int ModbusSolarEdge::calculate_sun_power(int16_t i_ac_power_norm, float b1_b_instantaneous_power) {
     // if we have no inverter output sun is not shining bright enough
     if (i_ac_power_norm <= 0) {
         return 0;
@@ -20,16 +20,25 @@ int calculate_sun_power(int16_t i_ac_power_norm, float b1_b_instantaneous_power)
 }
 
 /**
- * Calculate power used by house (B)
+ * Calculate power used by house
  * @param i_ac_power_norm Inverter output normalized in W
  * @param m1_m_ac_power Power going through the meter in W
  */
-int calculate_house_usage(int16_t i_ac_power_norm, int16_t m1_m_ac_power) {
+int ModbusSolarEdge::calculate_house_usage(int16_t i_ac_power_norm, int16_t m1_m_ac_power) {
     // NOTE: if we import power from the grid the meter value is negative
 
     // when exporting: remove the exported power from the inverters output to get the house usage
     // when importing: we have to add the imported power to the inverters output
     return i_ac_power_norm + (m1_m_ac_power * -1);
+}
+
+/**
+ * Normalize value with scale factor
+ * @param value value
+ * @param scale factor
+ */
+int16_t ModbusSolarEdge::norm(int16_t value, int16_t scale_factor) {
+    return value * pow(10, scale_factor);
 }
 
 /**

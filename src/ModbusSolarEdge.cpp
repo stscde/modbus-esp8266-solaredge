@@ -16,7 +16,10 @@ int ModbusSolarEdge::calculate_sun_power(int16_t i_ac_power_norm, float b1_b_ins
 
     // when exporting: as the inverter output "i_ac_power_morm" already contains the power send to the grid we do not have to deal with it here
     // when importing: import from battery has to be removed from inverter output "i_ac_power_morm" as we want to have the sun power not the battery power
-    return i_ac_power_norm += b1_b_instantaneous_power;
+    i_ac_power_norm += b1_b_instantaneous_power;
+
+    // import from battery may result in values lower 0 because of conversion losses DC > AC
+    return i_ac_power_norm > 0 ? i_ac_power_norm : 0;
 }
 
 /**

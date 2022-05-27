@@ -17,7 +17,7 @@
     "dependencies": [
         {
             "name": "emelianov/modbus-esp8266",
-            "version": "https://github.com/emelianov/modbus-esp8266.git"
+            "version": "https://github.com/emelianov/modbus-esp8266/archive/refs/heads/master.zip"
         }
     ],
     "frameworks": "*",
